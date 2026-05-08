@@ -7,6 +7,7 @@ const code = params.get('code')
 if (!code) window.location.href = '/'
 
 let questions = []
+let sseConn = null
 
 // Toast
 function showToast(msg, type = 'error') {
@@ -135,12 +136,14 @@ form.addEventListener('submit', async (e) => {
 })
 
 function setupSSE() {
-  const es = new EventSource(`/api/events/${code}/stream`)
-  es.onmessage = (e) => {
+  if (sseConn) sseConn.close()
+  sseConn = new EventSource(`/api/events/${code}/stream`)
+  sseConn.onmessage = (e) => {
     const data = JSON.parse(e.data)
     if (data.type === 'question_new') {
-      questions.push(data.question)
-      // If this is our pending question it was approved — clear tracking
+      if (!questions.find(q => q.id === data.question.id)) {
+        questions.push(data.question)
+      }
       const pendingId = sessionStorage.getItem(`pendingQ:${code}`)
       if (pendingId && Number(pendingId) === data.question.id) {
         sessionStorage.removeItem(`pendingQ:${code}`)
@@ -160,7 +163,7 @@ function setupSSE() {
       }
     }
   }
-  es.onerror = () => setTimeout(setupSSE, 3000)
+  sseConn.onerror = () => setTimeout(setupSSE, 3000)
 }
 
 function esc(str) {

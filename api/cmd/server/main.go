@@ -64,6 +64,7 @@ func main() {
 		r.Delete("/api/mod/events/{id}", h.DeleteEvent)
 		r.Get("/api/mod/events/{id}/qr", h.GetQRCode)
 		r.Get("/api/mod/events/{id}/questions/pending", h.GetPendingQuestions)
+		r.Get("/api/mod/events/{id}/questions", h.GetAllModQuestions)
 		r.Get("/api/mod/events/{id}/stream", h.ModStream)
 		r.Put("/api/mod/questions/{qid}/approve", h.ApproveQuestion)
 		r.Put("/api/mod/questions/{qid}/reject", h.RejectQuestion)

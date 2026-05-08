@@ -129,6 +129,19 @@ func (h *Handler) GetPendingQuestions(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, questions)
 }
 
+func (h *Handler) GetAllModQuestions(w http.ResponseWriter, r *http.Request) {
+	event, ok := h.requireEventAccess(w, r)
+	if !ok {
+		return
+	}
+	questions, err := h.db.GetAllModQuestions(event.ID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to load questions")
+		return
+	}
+	writeJSON(w, http.StatusOK, questions)
+}
+
 func (h *Handler) ApproveQuestion(w http.ResponseWriter, r *http.Request) {
 	h.moderateQuestion(w, r, models.StatusApproved)
 }

@@ -11,7 +11,9 @@ if (!eventId) window.location.href = '/dashboard/'
 
 let pending = []
 let approved = []
+let done = []
 let eventData = null
+let sseConn = null
 
 async function api(path, opts = {}) {
   const res = await fetch(path, {
@@ -47,14 +49,15 @@ async function init() {
 }
 
 async function loadQuestions() {
-  const [pendRes, appRes] = await Promise.all([
-    api(`/api/mod/events/${eventId}/questions/pending`),
-    fetch(`/api/events/${eventData.code}/questions`)
-  ])
-  if (pendRes && pendRes.ok) pending = await pendRes.json()
-  if (appRes && appRes.ok) approved = await appRes.json()
+  const res = await api(`/api/mod/events/${eventId}/questions`)
+  if (!res || !res.ok) return
+  const all = await res.json()
+  pending = all.filter(q => q.status === 'pending')
+  approved = all.filter(q => q.status === 'approved')
+  done = all.filter(q => q.status === 'answered' || q.status === 'rejected')
   renderPending()
   renderApproved()
+  renderDone()
 }
 
 function renderPending() {
@@ -107,6 +110,28 @@ function renderApproved() {
   renderPresenter()
 }
 
+function renderDone() {
+  const list = document.getElementById('done-list')
+  document.getElementById('done-count').textContent = done.length
+  if (done.length === 0) {
+    list.innerHTML = '<p class="empty-state">No history yet</p>'
+    return
+  }
+  list.innerHTML = ''
+  done.forEach(q => {
+    const card = document.createElement('div')
+    card.className = 'card question-mod-card'
+    const badgeClass = q.status === 'answered' ? 'status-answered' : 'status-rejected'
+    const badgeLabel = q.status === 'answered' ? 'Answered' : 'Rejected'
+    card.innerHTML = `
+      <span class="status-badge ${badgeClass}">${badgeLabel}</span>
+      <p class="q-text">${esc(q.text)}</p>
+      <p class="q-author-small">— ${esc(q.author_name)}</p>
+    `
+    list.appendChild(card)
+  })
+}
+
 function renderPresenter() {
   const list = document.getElementById('presenter-list')
   const sorted = [...approved].sort((a, b) => b.votes - a.votes)
@@ -132,18 +157,16 @@ function renderPresenter() {
   })
 }
 
+// Actions only make the API call — SSE is the single source of truth for state updates.
+// This prevents the double-update that happens when both the API response and SSE event
+// try to mutate the same arrays.
+
 window.approve = async function(qid) {
   const btn = document.querySelector(`#pending-${qid} .btn-success`)
   if (btn) btn.disabled = true
   const res = await api(`/api/mod/questions/${qid}/approve`, { method: 'PUT' })
-  if (res && res.ok) {
-    const q = await res.json()
-    pending = pending.filter(p => p.id !== qid)
-    approved.push(q)
-    renderPending()
-    renderApproved()
-  } else if (btn) {
-    btn.disabled = false
+  if (!res || !res.ok) {
+    if (btn) btn.disabled = false
   }
 }
 
@@ -151,11 +174,8 @@ window.reject = async function(qid) {
   const btn = document.querySelector(`#pending-${qid} .btn-danger`)
   if (btn) btn.disabled = true
   const res = await api(`/api/mod/questions/${qid}/reject`, { method: 'PUT' })
-  if (res && res.ok) {
-    pending = pending.filter(p => p.id !== qid)
-    renderPending()
-  } else if (btn) {
-    btn.disabled = false
+  if (!res || !res.ok) {
+    if (btn) btn.disabled = false
   }
 }
 
@@ -163,11 +183,8 @@ window.markAnswered = async function(qid) {
   const btn = document.querySelector(`#approved-${qid} button`)
   if (btn) btn.disabled = true
   const res = await api(`/api/mod/questions/${qid}/answered`, { method: 'PUT' })
-  if (res && res.ok) {
-    approved = approved.filter(q => q.id !== qid)
-    renderApproved()
-  } else if (btn) {
-    btn.disabled = false
+  if (!res || !res.ok) {
+    if (btn) btn.disabled = false
   }
 }
 
@@ -204,28 +221,47 @@ document.addEventListener('keydown', (e) => {
 })
 
 function setupSSE() {
-  const es = new EventSource(`/api/mod/events/${eventId}/stream?token=${encodeURIComponent(token)}`)
-  es.onmessage = (e) => {
+  if (sseConn) sseConn.close()
+  sseConn = new EventSource(`/api/mod/events/${eventId}/stream?token=${encodeURIComponent(token)}`)
+  sseConn.onmessage = (e) => {
     const data = JSON.parse(e.data)
     if (data.type === 'question_pending') {
-      pending.push(data.question)
-      renderPending()
-    } else if (data.type === 'question_status_changed') {
-      pending = pending.filter(q => q.id !== data.question_id)
-      if (data.status === 'approved' && data.question) {
-        approved.push(data.question)
+      if (!pending.find(q => q.id === data.question.id)) {
+        pending.push(data.question)
+        renderPending()
       }
-      renderPending()
-      renderApproved()
+    } else if (data.type === 'question_status_changed') {
+      const qid = data.question_id
+      if (data.status === 'approved' && data.question) {
+        pending = pending.filter(q => q.id !== qid)
+        if (!approved.find(q => q.id === qid)) {
+          approved.push(data.question)
+        }
+        renderPending()
+        renderApproved()
+      } else if (data.status === 'rejected') {
+        const q = pending.find(q => q.id === qid) || data.question
+        pending = pending.filter(q => q.id !== qid)
+        if (q && !done.find(d => d.id === qid)) {
+          done.unshift({ ...q, status: 'rejected' })
+        }
+        renderPending()
+        renderDone()
+      }
     } else if (data.type === 'vote_updated') {
       const q = approved.find(q => q.id === data.question_id)
       if (q) { q.votes = data.votes; renderApproved() }
     } else if (data.type === 'question_answered') {
+      const q = approved.find(q => q.id === data.question_id)
       approved = approved.filter(q => q.id !== data.question_id)
+      if (q && !done.find(d => d.id === data.question_id)) {
+        done.unshift({ ...q, status: 'answered' })
+      }
       renderApproved()
+      renderDone()
     }
   }
-  es.onerror = () => setTimeout(setupSSE, 3000)
+  sseConn.onerror = () => setTimeout(setupSSE, 3000)
 }
 
 function esc(str) {

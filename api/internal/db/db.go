@@ -313,6 +313,21 @@ func (d *DB) GetPendingQuestions(eventID int64) ([]models.Question, error) {
 	return scanQuestions(rows)
 }
 
+func (d *DB) GetAllModQuestions(eventID int64) ([]models.Question, error) {
+	rows, err := d.Query(
+		`SELECT id, event_id, text, author_name, status, votes, created_at FROM questions
+		 WHERE event_id = ?
+		 ORDER BY CASE status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 WHEN 'answered' THEN 2 ELSE 3 END,
+		          votes DESC, created_at ASC`,
+		eventID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanQuestions(rows)
+}
+
 func scanQuestions(rows *sql.Rows) ([]models.Question, error) {
 	var questions []models.Question
 	for rows.Next() {
