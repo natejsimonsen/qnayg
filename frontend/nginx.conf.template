@@ -23,8 +23,14 @@ server {
         proxy_read_timeout 86400s;
     }
 
+    location ~* ^/assets/ {
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
     location / {
         try_files $uri $uri/ $uri/index.html /index.html;
+        add_header Cache-Control "no-cache, must-revalidate";
     }
 }
 
@@ -37,6 +43,8 @@ server {
     location /assets/ {
         root /usr/share/nginx/html;
         try_files $uri =404;
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable";
     }
 
     location /api/ {
@@ -52,5 +60,6 @@ server {
 
     location / {
         try_files $uri $uri/ $uri/index.html /index.html;
+        add_header Cache-Control "no-cache, must-revalidate";
     }
 }
