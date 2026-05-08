@@ -56,6 +56,18 @@
   from { opacity: 0; transform: translateX(16px); }
   to   { opacity: 1; transform: translateX(0); }
 }
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideOutRight {
+  from { transform: translateX(0);    opacity: 1; }
+  to   { transform: translateX(110%); opacity: 0; }
+}
+@keyframes voteTickUp {
+  from { transform: translateY(80%); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -180,6 +192,35 @@ body {
 }
 .btn-fab:hover { background: var(--primary-hover); box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
 .btn-fab.active { transform: rotate(45deg); }
+
+/* Fixed ask FAB on audience page */
+.ask-fab {
+  position: fixed;
+  bottom: 1.75rem;
+  right: 1.75rem;
+  width: 3.25rem;
+  height: 3.25rem;
+  font-size: 1.85rem;
+  z-index: 200;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.28);
+}
+
+/* Vote count flip */
+.vote-count-wrap {
+  overflow: hidden;
+  display: inline-block;
+  line-height: 1;
+  vertical-align: middle;
+}
+.vote-count { display: inline-block; }
+.vote-flip { animation: voteTickUp 0.22s cubic-bezier(0.2,0.8,0.4,1) both; }
+
+/* Card enter / exit animations */
+.card-entering { animation: cardEnter 0.28s cubic-bezier(0.2,0.8,0.4,1) both; }
+.card-exiting {
+  animation: slideOutRight 0.3s cubic-bezier(0.4,0,0.8,0.6) forwards;
+  pointer-events: none;
+}
 
 /* ── Card ─────────────────────────────────────── */
 .card {

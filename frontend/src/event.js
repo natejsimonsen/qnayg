@@ -8,8 +8,10 @@ if (!code) window.location.href = '/'
 
 let questions = []
 let sseConn = null
+const newIds = new Set()
 
-// Toast
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
+
 function showToast(msg, type = 'error') {
   let container = document.getElementById('toast-container')
   if (!container) {
@@ -29,6 +31,7 @@ async function init() {
   const res = await fetch(`/api/events/${code}`)
   if (!res.ok) {
     document.getElementById('event-name').textContent = 'Event not found'
+    document.getElementById('ask-fab').style.display = 'none'
     return
   }
   const event = await res.json()
@@ -36,7 +39,7 @@ async function init() {
   document.title = event.name
 
   if (!event.active) {
-    document.getElementById('submit-section').style.display = 'none'
+    document.getElementById('ask-fab').style.display = 'none'
     document.getElementById('inactive-banner').style.display = 'block'
   }
 
@@ -49,20 +52,46 @@ async function init() {
   setupSSE()
 }
 
-function render() {
+// Ask modal
+const askFab = document.getElementById('ask-fab')
+const askModal = document.getElementById('ask-modal')
+
+askFab.addEventListener('click', () => {
+  askModal.style.display = 'flex'
+  askFab.classList.add('active')
+  setTimeout(() => document.getElementById('q-text').focus(), 50)
+})
+
+document.getElementById('ask-modal-close').addEventListener('click', closeModal)
+askModal.addEventListener('click', (e) => { if (e.target === askModal) closeModal() })
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal() })
+
+function closeModal() {
+  askModal.style.display = 'none'
+  askFab.classList.remove('active')
+}
+
+// Render — voteFlipId triggers the flip animation on that question's count
+function render(voteFlipId = null) {
   const list = document.getElementById('questions-list')
   if (questions.length === 0) {
     list.innerHTML = '<p class="empty-state">No questions yet. Be the first!</p>'
+    newIds.clear()
     return
   }
   const sorted = [...questions].sort((a, b) => b.votes - a.votes)
   list.innerHTML = ''
-  sorted.forEach(q => list.appendChild(makeCard(q)))
+  sorted.forEach(q => list.appendChild(makeCard(q, newIds.has(q.id))))
+  newIds.clear()
+  if (voteFlipId !== null) {
+    const el = document.getElementById(`votes-${voteFlipId}`)
+    if (el) el.classList.add('vote-flip')
+  }
 }
 
-function makeCard(q) {
+function makeCard(q, entering = false) {
   const div = document.createElement('div')
-  div.className = 'card question-card'
+  div.className = `card question-card${entering ? ' card-entering' : ''}`
   div.id = `q-${q.id}`
   const voted = hasVoted(q.id)
   div.innerHTML = `
@@ -70,22 +99,42 @@ function makeCard(q) {
     <div class="q-meta">
       <span class="q-author">${esc(q.author_name)}</span>
       <button class="vote-btn ${voted ? 'voted' : ''}" onclick="vote(${q.id})" ${voted ? 'disabled' : ''}>
-        ▲ <span id="votes-${q.id}">${q.votes}</span>
+        <span class="vote-icon">👍</span>
+        <span class="vote-count-wrap"><span class="vote-count" id="votes-${q.id}">${q.votes}</span></span>
       </button>
     </div>
   `
   return div
 }
 
+// Two-phase exit: slide right, then collapse height so cards below shift up
+async function animateCardOut(qid) {
+  const card = document.getElementById(`q-${qid}`)
+  if (!card) return
+  card.classList.add('card-exiting')
+  await sleep(300)
+  const h = card.offsetHeight
+  card.style.height = h + 'px'
+  card.style.overflow = 'hidden'
+  card.style.transition = 'height 0.22s ease, margin-bottom 0.22s ease, padding-top 0.22s ease, padding-bottom 0.22s ease'
+  void card.offsetHeight
+  card.style.height = '0'
+  card.style.marginBottom = '0'
+  card.style.paddingTop = '0'
+  card.style.paddingBottom = '0'
+  await sleep(230)
+}
+
 window.vote = async function(qid) {
   if (hasVoted(qid)) return
-  const res = await fetch(`/api/events/${code}/questions/${qid}/vote`, { method: 'POST' })
-  if (res.ok) {
-    markVoted(qid)
-    const data = await res.json()
-    const q = questions.find(q => q.id === qid)
-    if (q) { q.votes = data.votes; render() }
+  markVoted(qid)
+  // Update button optimistically; vote count updates via SSE
+  const card = document.getElementById(`q-${qid}`)
+  if (card) {
+    const btn = card.querySelector('.vote-btn')
+    if (btn) { btn.classList.add('voted'); btn.disabled = true }
   }
+  await fetch(`/api/events/${code}/questions/${qid}/vote`, { method: 'POST' })
 }
 
 function hasVoted(qid) {
@@ -125,7 +174,10 @@ form.addEventListener('submit', async (e) => {
     msgEl.className = 'alert alert-success'
     msgEl.textContent = 'Question submitted!'
     msgEl.style.display = 'block'
-    setTimeout(() => { msgEl.style.display = 'none' }, 3000)
+    setTimeout(() => {
+      msgEl.style.display = 'none'
+      closeModal()
+    }, 1500)
   } else {
     const err = await res.json()
     msgEl.className = 'alert alert-error'
@@ -143,6 +195,7 @@ function setupSSE() {
     if (data.type === 'question_new') {
       if (!questions.find(q => q.id === data.question.id)) {
         questions.push(data.question)
+        newIds.add(data.question.id)
       }
       const pendingId = sessionStorage.getItem(`pendingQ:${code}`)
       if (pendingId && Number(pendingId) === data.question.id) {
@@ -151,10 +204,12 @@ function setupSSE() {
       render()
     } else if (data.type === 'vote_updated') {
       const q = questions.find(q => q.id === data.question_id)
-      if (q) { q.votes = data.votes; render() }
+      if (q) { q.votes = data.votes; render(data.question_id) }
     } else if (data.type === 'question_answered') {
-      questions = questions.filter(q => q.id !== data.question_id)
-      render()
+      animateCardOut(data.question_id).then(() => {
+        questions = questions.filter(q => q.id !== data.question_id)
+        render()
+      })
     } else if (data.type === 'question_rejected') {
       const pendingId = sessionStorage.getItem(`pendingQ:${code}`)
       if (pendingId && Number(pendingId) === data.question_id) {

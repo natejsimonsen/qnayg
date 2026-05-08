@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"slido/internal/filter"
 	"slido/internal/middleware"
 	"slido/internal/models"
 )
@@ -40,10 +39,6 @@ func (h *Handler) SubmitQuestion(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(req.Text) > 500 {
 		writeError(w, http.StatusBadRequest, "question is too long (max 500 characters)")
-		return
-	}
-	if filter.ContainsBannedWord(req.Text) {
-		writeError(w, http.StatusBadRequest, "your question contains inappropriate language, please rephrase")
 		return
 	}
 

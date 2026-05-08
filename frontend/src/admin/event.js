@@ -15,6 +15,8 @@ let done = []
 let eventData = null
 let sseConn = null
 
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
+
 async function api(path, opts = {}) {
   const res = await fetch(path, {
     ...opts,
@@ -143,6 +145,7 @@ function renderPresenter() {
   sorted.forEach((q, i) => {
     const card = document.createElement('div')
     card.className = `presenter-card${i === 0 ? ' top-q' : ''}`
+    card.dataset.qid = q.id
     card.innerHTML = `
       <div class="presenter-rank">${i + 1}</div>
       <div class="presenter-body">
@@ -220,6 +223,13 @@ document.addEventListener('keydown', (e) => {
   }
 })
 
+async function animatePresenterCardOut(qid) {
+  const card = document.querySelector(`#presenter-list [data-qid="${qid}"]`)
+  if (!card) return
+  card.classList.add('card-exiting')
+  await sleep(320)
+}
+
 function setupSSE() {
   if (sseConn) sseConn.close()
   sseConn = new EventSource(`/api/mod/events/${eventId}/stream?token=${encodeURIComponent(token)}`)
@@ -257,8 +267,10 @@ function setupSSE() {
       if (q && !done.find(d => d.id === data.question_id)) {
         done.unshift({ ...q, status: 'answered' })
       }
-      renderApproved()
-      renderDone()
+      animatePresenterCardOut(data.question_id).then(() => {
+        renderApproved()
+        renderDone()
+      })
     }
   }
   sseConn.onerror = () => setTimeout(setupSSE, 3000)
