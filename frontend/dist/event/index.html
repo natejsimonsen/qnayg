@@ -11,21 +11,22 @@
     .q-author { font-size: 0.8rem; color: var(--text-muted); }
     .vote-btn {
       background: none; border: 1px solid var(--border); border-radius: 0.4rem;
-      padding: 0.25rem 0.6rem; cursor: pointer; color: var(--text);
-      font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;
-      transition: background 0.15s;
+      padding: 0.25rem 0.65rem; cursor: pointer; color: var(--text);
+      font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
     .vote-btn:hover:not(:disabled) { background: var(--bg-secondary); }
     .vote-btn.voted { color: var(--primary); border-color: var(--primary); }
+    .vote-icon { font-size: 1rem; line-height: 1; }
     .inactive-banner {
-      background: rgba(245, 158, 11, 0.1); color: var(--warning);
-      border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 0.5rem;
+      background: rgba(245,158,11,0.1); color: var(--warning);
+      border: 1px solid rgba(245,158,11,0.2); border-radius: 0.5rem;
       padding: 0.75rem 1rem; margin-bottom: 1.5rem; display: none;
     }
   </style>
-  <script type="module" crossorigin src="/assets/event-11Jqal2O.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/theme-BOVQum-g.js">
-  <link rel="stylesheet" crossorigin href="/assets/theme-Db8FF0nc.css">
+  <script type="module" crossorigin src="/assets/event-e4OLG_UU.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/theme-Dz6HwMwx.js">
+  <link rel="stylesheet" crossorigin href="/assets/theme-B-p3LV82.css">
 </head>
 <body>
   <nav class="nav">
@@ -36,35 +37,35 @@
   </nav>
 
   <div class="container">
-    <h1 id="event-name" style="font-size:1.75rem;font-weight:700;margin-bottom:1.5rem;">Loading...</h1>
-
+    <h1 id="event-name" style="font-size:1.75rem;font-weight:700;margin-bottom:1.25rem;">Loading...</h1>
     <div id="inactive-banner" class="inactive-banner">
       This event is not currently accepting new questions.
     </div>
+    <div id="questions-list"></div>
+  </div>
 
-    <div id="submit-section">
-      <div class="card" style="margin-bottom:2rem;">
-        <h2 style="font-size:1rem;font-weight:600;margin-bottom:1rem;">Ask a Question</h2>
-        <form id="question-form">
-          <div class="form-group">
-            <label for="q-text">Your Question</label>
-            <textarea id="q-text" class="textarea" placeholder="Type your question..." maxlength="500"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="q-author">Your Name (optional)</label>
-            <input id="q-author" class="input" type="text" placeholder="Anonymous" maxlength="100">
-          </div>
-          <div id="submit-msg" class="alert" style="display:none;"></div>
-          <button type="submit" class="btn btn-primary">Submit Question</button>
-        </form>
+  <!-- Ask FAB -->
+  <button id="ask-fab" class="btn-fab ask-fab" title="Ask a question">+</button>
+
+  <!-- Ask modal -->
+  <div id="ask-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <p class="modal-title">Ask a Question</p>
+        <button id="ask-modal-close" class="btn btn-ghost btn-sm">✕</button>
       </div>
-    </div>
-
-    <div>
-      <h2 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--text-muted);">
-        Live Questions
-      </h2>
-      <div id="questions-list"></div>
+      <form id="question-form">
+        <div class="form-group">
+          <label for="q-text">Your question</label>
+          <textarea id="q-text" class="textarea" placeholder="Type your question..." maxlength="500"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="q-author">Your name (optional)</label>
+          <input id="q-author" class="input" type="text" placeholder="Anonymous" maxlength="100">
+        </div>
+        <div id="submit-msg" class="alert" style="display:none;"></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">Submit Question</button>
+      </form>
     </div>
   </div>
 

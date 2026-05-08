@@ -80,9 +80,33 @@ function render(voteFlipId = null) {
     return
   }
   const sorted = [...questions].sort((a, b) => b.votes - a.votes)
+
+  // FLIP: snapshot positions of existing cards before DOM changes
+  const before = {}
+  sorted.forEach(q => {
+    const el = document.getElementById(`q-${q.id}`)
+    if (el) before[q.id] = el.getBoundingClientRect().top
+  })
+
   list.innerHTML = ''
   sorted.forEach(q => list.appendChild(makeCard(q, newIds.has(q.id))))
   newIds.clear()
+
+  // FLIP: animate cards that moved from a known previous position
+  sorted.forEach(q => {
+    if (before[q.id] == null) return
+    const el = document.getElementById(`q-${q.id}`)
+    if (!el) return
+    const after = el.getBoundingClientRect().top
+    const delta = before[q.id] - after
+    if (Math.abs(delta) < 1) return
+    el.style.transform = `translateY(${delta}px)`
+    el.style.transition = 'none'
+    void el.offsetHeight
+    el.style.transition = 'transform 0.3s cubic-bezier(0.2,0.8,0.4,1)'
+    el.style.transform = ''
+  })
+
   if (voteFlipId !== null) {
     const el = document.getElementById(`votes-${voteFlipId}`)
     if (el) el.classList.add('vote-flip')

@@ -34,6 +34,14 @@
       border-radius: 9999px; padding: 0.1rem 0.55rem; font-size: 0.82rem; font-weight: 700;
     }
 
+    .status-badge {
+      display: inline-block; border-radius: 9999px;
+      padding: 0.1rem 0.55rem; font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.35rem;
+    }
+    .status-answered { background: var(--alert-success-bg); color: var(--text-muted); border: 1px solid var(--alert-success-border); }
+    .status-rejected { background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border); }
+
     /* QR Modal */
     .modal {
       display: none; position: fixed; inset: 0;
@@ -49,9 +57,9 @@
     .modal-title { font-weight: 600; margin-bottom: 1rem; }
     .modal-code { font-family: monospace; font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem; }
   </style>
-  <script type="module" crossorigin src="/assets/adminEvent-Dzkd0cxn.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/theme-BOVQum-g.js">
-  <link rel="stylesheet" crossorigin href="/assets/theme-Db8FF0nc.css">
+  <script type="module" crossorigin src="/assets/adminEvent-DeWa8KFj.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/theme-Dz6HwMwx.js">
+  <link rel="stylesheet" crossorigin href="/assets/theme-B-p3LV82.css">
 </head>
 <body>
   <nav class="nav">
@@ -85,6 +93,14 @@
         <span class="section-count" id="approved-count">0</span>
       </div>
       <div id="approved-list"></div>
+    </div>
+
+    <div class="mod-section">
+      <div class="section-header">
+        <span class="section-title">History</span>
+        <span class="section-count" id="done-count">0</span>
+      </div>
+      <div id="done-list"></div>
     </div>
   </div>
 
