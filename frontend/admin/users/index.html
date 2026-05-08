@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Users</title>
+  <style>
+    .user-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .user-info { display: flex; align-items: center; gap: 0.75rem; }
+    .user-name { font-weight: 500; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="/dashboard/" class="nav-brand">← Dashboard</a>
+    <div class="nav-actions">
+      <button id="logout-btn" class="btn btn-ghost btn-sm">Logout</button>
+      <button class="theme-toggle" id="theme-toggle">☾</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:1.5rem;">Manage Moderators</h1>
+
+    <div class="card" style="margin-bottom:2rem;">
+      <h2 style="font-size:1rem;font-weight:600;margin-bottom:1rem;">Add Moderator</h2>
+      <form id="create-form">
+        <div class="form-group">
+          <label for="new-username">Username</label>
+          <input id="new-username" class="input" type="text" required>
+        </div>
+        <div class="form-group">
+          <label for="new-password">Password</label>
+          <input id="new-password" class="input" type="password" required>
+        </div>
+        <div id="create-msg" class="alert" style="display:none;"></div>
+        <button type="submit" class="btn btn-primary">Add Moderator</button>
+      </form>
+    </div>
+
+    <h2 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--text-muted);">Current Moderators</h2>
+    <div id="users-list"></div>
+  </div>
+
+  <script type="module" src="/src/admin/users.js"></script>
+</body>
+</html>

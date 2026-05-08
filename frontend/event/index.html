@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ask a Question</title>
+  <style>
+    .question-card { margin-bottom: 0.75rem; }
+    .q-text { font-size: 1rem; margin-bottom: 0.5rem; }
+    .q-meta { display: flex; align-items: center; justify-content: space-between; }
+    .q-author { font-size: 0.8rem; color: var(--text-muted); }
+    .vote-btn {
+      background: none; border: 1px solid var(--border); border-radius: 0.4rem;
+      padding: 0.25rem 0.6rem; cursor: pointer; color: var(--text);
+      font-size: 0.85rem; display: flex; align-items: center; gap: 0.3rem;
+      transition: background 0.15s;
+    }
+    .vote-btn:hover:not(:disabled) { background: var(--bg-secondary); }
+    .vote-btn.voted { color: var(--primary); border-color: var(--primary); }
+    .inactive-banner {
+      background: rgba(245, 158, 11, 0.1); color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 0.5rem;
+      padding: 0.75rem 1rem; margin-bottom: 1.5rem; display: none;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="nav-brand">Q&A</a>
+    <div class="nav-actions">
+      <button class="theme-toggle" id="theme-toggle">☾</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1 id="event-name" style="font-size:1.75rem;font-weight:700;margin-bottom:1.5rem;">Loading...</h1>
+
+    <div id="inactive-banner" class="inactive-banner">
+      This event is not currently accepting new questions.
+    </div>
+
+    <div id="submit-section">
+      <div class="card" style="margin-bottom:2rem;">
+        <h2 style="font-size:1rem;font-weight:600;margin-bottom:1rem;">Ask a Question</h2>
+        <form id="question-form">
+          <div class="form-group">
+            <label for="q-text">Your Question</label>
+            <textarea id="q-text" class="textarea" placeholder="Type your question..." maxlength="500"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="q-author">Your Name (optional)</label>
+            <input id="q-author" class="input" type="text" placeholder="Anonymous" maxlength="100">
+          </div>
+          <div id="submit-msg" class="alert" style="display:none;"></div>
+          <button type="submit" class="btn btn-primary">Submit Question</button>
+        </form>
+      </div>
+    </div>
+
+    <div>
+      <h2 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--text-muted);">
+        Live Questions
+      </h2>
+      <div id="questions-list"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/event.js"></script>
+</body>
+</html>

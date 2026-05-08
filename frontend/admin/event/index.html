@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moderate Event</title>
+  <style>
+    .mod-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 700px) { .mod-layout { grid-template-columns: 1fr; } }
+    .col-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .col-title { font-size: 1rem; font-weight: 600; }
+    .col-count {
+      background: var(--bg-secondary); color: var(--text-muted);
+      border-radius: 9999px; padding: 0.15rem 0.6rem; font-size: 0.8rem; font-weight: 600;
+    }
+    .question-mod-card { margin-bottom: 0.75rem; position: relative; }
+    .q-text { font-size: 0.95rem; margin-bottom: 0.4rem; }
+    .q-author-small { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+    .mod-actions { display: flex; gap: 0.5rem; }
+    .q-votes-badge {
+      position: absolute; top: 1rem; right: 1rem;
+      background: var(--bg-secondary); color: var(--primary);
+      border-radius: 9999px; padding: 0.15rem 0.6rem; font-size: 0.85rem; font-weight: 600;
+    }
+    .event-header { margin-bottom: 1.5rem; }
+    .event-meta { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .code-display {
+      font-family: monospace; font-size: 1.5rem; font-weight: 700;
+      letter-spacing: 0.2em; color: var(--primary);
+      background: var(--bg-secondary); padding: 0.25rem 0.75rem; border-radius: 0.5rem;
+    }
+
+    /* QR Modal */
+    .modal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); z-index: 1000;
+      align-items: center; justify-content: center;
+    }
+    .modal-content {
+      background: var(--card-bg); border-radius: 1rem;
+      padding: 2rem; text-align: center; max-width: 320px; width: 90%;
+    }
+    .modal-content img { border-radius: 0.5rem; width: 240px; height: 240px; }
+    .modal-title { font-weight: 600; margin-bottom: 1rem; }
+    .modal-code { font-family: monospace; font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="/dashboard/" class="nav-brand">← Dashboard</a>
+    <div class="nav-actions">
+      <button class="theme-toggle" id="theme-toggle">☾</button>
+    </div>
+  </nav>
+
+  <div class="container-wide">
+    <div class="event-header">
+      <h1 id="event-title" style="font-size:1.5rem;font-weight:700;margin-bottom:0.75rem;">Loading...</h1>
+      <div class="event-meta">
+        <div class="code-display" id="event-code">------</div>
+        <button id="qr-btn" class="btn btn-ghost">QR Code</button>
+      </div>
+    </div>
+
+    <div class="mod-layout">
+      <div>
+        <div class="col-header">
+          <span class="col-title">Pending</span>
+          <span class="col-count" id="pending-count">0</span>
+        </div>
+        <div id="pending-list"></div>
+      </div>
+      <div>
+        <div class="col-header">
+          <span class="col-title">Approved — sorted by votes</span>
+          <span class="col-count" id="approved-count">0</span>
+        </div>
+        <div id="approved-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Modal -->
+  <div id="qr-modal" class="modal">
+    <div class="modal-content">
+      <p class="modal-title">Scan to join</p>
+      <p class="modal-code" id="event-code-modal"></p>
+      <img id="qr-img" src="" alt="QR Code" style="display:block;margin:0 auto 1rem;">
+      <button id="qr-close" class="btn btn-ghost" style="width:100%;justify-content:center;">Close</button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/admin/event.js"></script>
+</body>
+</html>

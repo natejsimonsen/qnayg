@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <style>
+    .event-card { margin-bottom: 0.75rem; }
+    .event-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; }
+    .event-name { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .event-code { font-size: 0.85rem; color: var(--text-muted); }
+    .event-card-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .create-section { display: none; margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <span class="nav-brand">Q&A Admin</span>
+    <div class="nav-actions">
+      <a id="users-link" href="/users/" class="btn btn-ghost btn-sm" style="display:none;">Users</a>
+      <span id="user-name" style="font-size:0.85rem;color:var(--text-muted);"></span>
+      <button id="logout-btn" class="btn btn-ghost btn-sm">Logout</button>
+      <button class="theme-toggle" id="theme-toggle">☾</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <h1 style="font-size:1.5rem;font-weight:700;">My Events</h1>
+      <button id="show-create" class="btn btn-primary">+ New Event</button>
+    </div>
+
+    <div id="create-section" class="card create-section">
+      <h2 style="font-size:1rem;font-weight:600;margin-bottom:1rem;">Create Event</h2>
+      <form id="create-form">
+        <div class="form-group">
+          <label for="event-name">Event Name</label>
+          <input id="event-name" class="input" type="text" placeholder="e.g. Team All-Hands Q&A" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Create</button>
+      </form>
+    </div>
+
+    <div id="events-list"></div>
+  </div>
+
+  <script type="module" src="/src/admin/dashboard.js"></script>
+</body>
+</html>
