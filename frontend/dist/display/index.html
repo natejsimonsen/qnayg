@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Questions</title>
+  <style>
+    body { overflow: hidden; }
+    .display-header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .display-title { font-size: 1.5rem; font-weight: 700; }
+    .display-list { padding: 1.5rem 2rem; overflow-y: auto; height: calc(100vh - 80px); }
+    .display-card {
+      display: flex; align-items: flex-start; gap: 1rem;
+      padding: 1.25rem; border-radius: 0.75rem;
+      border: 1px solid var(--border); background: var(--card-bg);
+      margin-bottom: 0.75rem; transition: all 0.3s ease;
+    }
+    .display-card.top-question {
+      border-color: var(--primary); background: var(--bg-secondary);
+      transform: scale(1.01);
+    }
+    .display-rank {
+      font-size: 1.5rem; font-weight: 700; color: var(--text-muted);
+      min-width: 2rem; text-align: center; line-height: 1.4;
+    }
+    .display-card.top-question .display-rank { color: var(--primary); }
+    .display-text { font-size: 1.25rem; font-weight: 500; margin-bottom: 0.5rem; }
+    .display-meta { display: flex; align-items: center; gap: 1rem; }
+    .display-author { color: var(--text-muted); font-size: 0.9rem; }
+    .display-votes { color: var(--primary); font-weight: 600; font-size: 1rem; }
+    .display-content { flex: 1; }
+    .empty-state { font-size: 1.5rem; }
+  </style>
+  <script type="module" crossorigin src="/assets/display-CfgxNI01.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/theme-BOVQum-g.js">
+  <link rel="stylesheet" crossorigin href="/assets/theme-Db8FF0nc.css">
+</head>
+<body>
+  <div class="display-header">
+    <div id="event-name" class="display-title">Loading...</div>
+    <button class="theme-toggle" id="theme-toggle">☾</button>
+  </div>
+  <div class="display-list" id="questions-list"></div>
+
+</body>
+</html>

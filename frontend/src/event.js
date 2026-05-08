@@ -8,6 +8,22 @@ if (!code) window.location.href = '/'
 
 let questions = []
 
+// Toast
+function showToast(msg, type = 'error') {
+  let container = document.getElementById('toast-container')
+  if (!container) {
+    container = document.createElement('div')
+    container.id = 'toast-container'
+    container.className = 'toast-container'
+    document.body.appendChild(container)
+  }
+  const t = document.createElement('div')
+  t.className = `toast toast-${type}`
+  t.textContent = msg
+  container.appendChild(t)
+  setTimeout(() => t.remove(), 4000)
+}
+
 async function init() {
   const res = await fetch(`/api/events/${code}`)
   if (!res.ok) {
@@ -87,8 +103,11 @@ form.addEventListener('submit', async (e) => {
   const text = document.getElementById('q-text').value.trim()
   const author = document.getElementById('q-author').value.trim()
   const msgEl = document.getElementById('submit-msg')
-
   if (!text) return
+
+  const btn = form.querySelector('[type=submit]')
+  if (btn.disabled) return
+  btn.disabled = true
 
   const res = await fetch(`/api/events/${code}/questions`, {
     method: 'POST',
@@ -96,17 +115,23 @@ form.addEventListener('submit', async (e) => {
     body: JSON.stringify({ text, author_name: author || 'Anonymous' })
   })
 
+  btn.disabled = false
+
   if (res.ok) {
+    const data = await res.json()
+    sessionStorage.setItem(`pendingQ:${code}`, String(data.id))
     document.getElementById('q-text').value = ''
     msgEl.className = 'alert alert-success'
-    msgEl.textContent = 'Question submitted! Waiting for moderation.'
+    msgEl.textContent = 'Question submitted!'
+    msgEl.style.display = 'block'
+    setTimeout(() => { msgEl.style.display = 'none' }, 3000)
   } else {
     const err = await res.json()
     msgEl.className = 'alert alert-error'
     msgEl.textContent = err.error || 'Failed to submit question.'
+    msgEl.style.display = 'block'
+    setTimeout(() => { msgEl.style.display = 'none' }, 4000)
   }
-  msgEl.style.display = 'block'
-  setTimeout(() => { msgEl.style.display = 'none' }, 4000)
 })
 
 function setupSSE() {
@@ -115,6 +140,11 @@ function setupSSE() {
     const data = JSON.parse(e.data)
     if (data.type === 'question_new') {
       questions.push(data.question)
+      // If this is our pending question it was approved — clear tracking
+      const pendingId = sessionStorage.getItem(`pendingQ:${code}`)
+      if (pendingId && Number(pendingId) === data.question.id) {
+        sessionStorage.removeItem(`pendingQ:${code}`)
+      }
       render()
     } else if (data.type === 'vote_updated') {
       const q = questions.find(q => q.id === data.question_id)
@@ -122,6 +152,12 @@ function setupSSE() {
     } else if (data.type === 'question_answered') {
       questions = questions.filter(q => q.id !== data.question_id)
       render()
+    } else if (data.type === 'question_rejected') {
+      const pendingId = sessionStorage.getItem(`pendingQ:${code}`)
+      if (pendingId && Number(pendingId) === data.question_id) {
+        sessionStorage.removeItem(`pendingQ:${code}`)
+        showToast('Your question was not approved.')
+      }
     }
   }
   es.onerror = () => setTimeout(setupSSE, 3000)

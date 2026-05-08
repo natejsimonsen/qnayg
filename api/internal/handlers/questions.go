@@ -65,7 +65,7 @@ func (h *Handler) SubmitQuestion(w http.ResponseWriter, r *http.Request) {
 	})
 	h.broker.Publish(fmt.Sprintf("mod:%d", event.ID), string(data))
 
-	writeJSON(w, http.StatusCreated, map[string]string{"message": "question submitted, waiting for moderation"})
+	writeJSON(w, http.StatusCreated, map[string]interface{}{"id": question.ID, "message": "submitted"})
 }
 
 func (h *Handler) GetApprovedQuestions(w http.ResponseWriter, r *http.Request) {
@@ -213,6 +213,12 @@ func (h *Handler) moderateQuestion(w http.ResponseWriter, r *http.Request, statu
 		msg, _ := json.Marshal(map[string]interface{}{
 			"type":     "question_new",
 			"question": question,
+		})
+		h.broker.Publish(fmt.Sprintf("audience:%s", event.Code), string(msg))
+	} else if status == models.StatusRejected {
+		msg, _ := json.Marshal(map[string]interface{}{
+			"type":        "question_rejected",
+			"question_id": qid,
 		})
 		h.broker.Publish(fmt.Sprintf("audience:%s", event.Code), string(msg))
 	}

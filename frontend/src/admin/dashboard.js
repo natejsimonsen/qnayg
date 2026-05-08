@@ -89,20 +89,28 @@ form.addEventListener('submit', async (e) => {
   e.preventDefault()
   const name = document.getElementById('event-name').value.trim()
   if (!name) return
+  const btn = form.querySelector('[type=submit]')
+  if (btn.disabled) return
+  btn.disabled = true
   const res = await api('/api/mod/events', {
     method: 'POST',
     body: JSON.stringify({ name })
   })
+  btn.disabled = false
   if (res && res.ok) {
     document.getElementById('event-name').value = ''
-    document.getElementById('create-section').style.display = 'none'
+    document.getElementById('create-section').classList.remove('open')
+    document.getElementById('show-create').classList.remove('active')
     loadEvents()
   }
 })
 
 document.getElementById('show-create').addEventListener('click', () => {
   const section = document.getElementById('create-section')
-  section.style.display = section.style.display === 'none' ? 'block' : 'none'
+  const fab = document.getElementById('show-create')
+  const opening = !section.classList.contains('open')
+  section.classList.toggle('open', opening)
+  fab.classList.toggle('active', opening)
 })
 
 document.getElementById('logout-btn').addEventListener('click', logout)

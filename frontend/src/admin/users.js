@@ -64,10 +64,14 @@ form.addEventListener('submit', async (e) => {
   const password = document.getElementById('new-password').value
   const msgEl = document.getElementById('create-msg')
 
+  const btn = form.querySelector('[type=submit]')
+  if (btn.disabled) return
+  btn.disabled = true
   const res = await api('/api/admin/users', {
     method: 'POST',
     body: JSON.stringify({ username, password })
   })
+  btn.disabled = false
 
   if (res && res.ok) {
     document.getElementById('new-username').value = ''
