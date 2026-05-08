@@ -360,17 +360,17 @@ label {
 
 /* ── Modal ───────────────────────────────────── */
 .modal {
-  display: none;
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
   z-index: 1000;
+  display: none;
   align-items: flex-start;
   justify-content: center;
   padding: 10vh 1rem 1rem;
+  overflow-y: auto;
 }
-.modal.open,
-.modal[style*="flex"] {
+.modal.modal-open {
   display: flex;
 }
 .modal-content {
@@ -382,6 +382,7 @@ label {
   max-width: 480px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
   animation: fadeUp 0.2s ease;
+  flex-shrink: 0;
 }
 .modal-title {
   font-weight: 600;

@@ -57,7 +57,7 @@ const askFab = document.getElementById('ask-fab')
 const askModal = document.getElementById('ask-modal')
 
 askFab.addEventListener('click', () => {
-  askModal.style.display = 'flex'
+  askModal.classList.add('modal-open')
   askFab.classList.add('active')
   setTimeout(() => document.getElementById('q-text').focus(), 50)
 })
@@ -67,7 +67,7 @@ askModal.addEventListener('click', (e) => { if (e.target === askModal) closeModa
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal() })
 
 function closeModal() {
-  askModal.style.display = 'none'
+  askModal.classList.remove('modal-open')
   askFab.classList.remove('active')
 }
 
@@ -181,28 +181,24 @@ form.addEventListener('submit', async (e) => {
 
   const btn = form.querySelector('[type=submit]')
   if (btn.disabled) return
-  btn.disabled = true
 
+  document.getElementById('q-text').value = ''
+  closeModal()
+
+  btn.disabled = true
   const res = await fetch(`/api/events/${code}/questions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text, author_name: author || 'Anonymous' })
   })
-
   btn.disabled = false
 
   if (res.ok) {
     const data = await res.json()
     sessionStorage.setItem(`pendingQ:${code}`, String(data.id))
-    document.getElementById('q-text').value = ''
-    msgEl.style.display = 'none'
-    closeModal()
   } else {
-    const err = await res.json()
-    msgEl.className = 'alert alert-error'
-    msgEl.textContent = err.error || 'Failed to submit question.'
-    msgEl.style.display = 'block'
-    setTimeout(() => { msgEl.style.display = 'none' }, 4000)
+    const err = await res.json().catch(() => ({}))
+    showToast(err.error || 'Failed to submit question.')
   }
 })
 
