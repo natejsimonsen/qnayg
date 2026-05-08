@@ -56,6 +56,12 @@ func (d *DB) Migrate() error {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (event_id) REFERENCES events(id)
 		);
+		CREATE TABLE IF NOT EXISTS question_votes (
+			question_id INTEGER NOT NULL,
+			ip TEXT NOT NULL,
+			PRIMARY KEY (question_id, ip),
+			FOREIGN KEY (question_id) REFERENCES questions(id)
+		);
 	`)
 	return err
 }
@@ -350,14 +356,28 @@ func (d *DB) UpdateQuestionStatus(id int64, status models.QuestionStatus) error 
 	return err
 }
 
-func (d *DB) IncrementVote(id int64) (int, error) {
-	_, err := d.Exec("UPDATE questions SET votes = votes + 1 WHERE id = ? AND status = 'approved'", id)
+// IncrementVote records a vote from ip and increments the count.
+// Returns (votes, alreadyVoted, error). If alreadyVoted is true, count is unchanged.
+func (d *DB) IncrementVote(id int64, ip string) (int, bool, error) {
+	res, err := d.Exec(
+		"INSERT OR IGNORE INTO question_votes (question_id, ip) VALUES (?, ?)", id, ip,
+	)
 	if err != nil {
-		return 0, err
+		return 0, false, err
+	}
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
+		var votes int
+		err = d.QueryRow("SELECT votes FROM questions WHERE id = ?", id).Scan(&votes)
+		return votes, true, err
+	}
+	_, err = d.Exec("UPDATE questions SET votes = votes + 1 WHERE id = ? AND status = 'approved'", id)
+	if err != nil {
+		return 0, false, err
 	}
 	var votes int
 	err = d.QueryRow("SELECT votes FROM questions WHERE id = ?", id).Scan(&votes)
-	return votes, err
+	return votes, false, err
 }
 
 func (d *DB) EventCodeExists(code string) (bool, error) {

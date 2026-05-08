@@ -94,9 +94,18 @@ func (h *Handler) VoteQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	votes, err := h.db.IncrementVote(qid)
+	ip := r.Header.Get("X-Forwarded-For")
+	if ip == "" {
+		ip = r.RemoteAddr
+	}
+
+	votes, alreadyVoted, err := h.db.IncrementVote(qid, ip)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to vote")
+		return
+	}
+	if alreadyVoted {
+		writeJSON(w, http.StatusOK, map[string]int{"votes": votes})
 		return
 	}
 

@@ -79,7 +79,7 @@ function render(voteFlipId = null) {
     newIds.clear()
     return
   }
-  const sorted = [...questions].sort((a, b) => b.votes - a.votes)
+  const sorted = [...questions].sort((a, b) => b.votes - a.votes || a.id - b.id)
 
   // FLIP: snapshot positions of existing cards before DOM changes
   const before = {}
@@ -195,13 +195,8 @@ form.addEventListener('submit', async (e) => {
     const data = await res.json()
     sessionStorage.setItem(`pendingQ:${code}`, String(data.id))
     document.getElementById('q-text').value = ''
-    msgEl.className = 'alert alert-success'
-    msgEl.textContent = 'Question submitted!'
-    msgEl.style.display = 'block'
-    setTimeout(() => {
-      msgEl.style.display = 'none'
-      closeModal()
-    }, 1500)
+    msgEl.style.display = 'none'
+    closeModal()
   } else {
     const err = await res.json()
     msgEl.className = 'alert alert-error'
